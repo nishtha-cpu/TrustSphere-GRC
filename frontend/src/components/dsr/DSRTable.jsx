@@ -12,10 +12,17 @@ export default function DSRTable({
 }) {
   const getStatusLabel = (st) => {
     switch (st) {
-      case 'RECEIVED': return 'Received';
-      case 'IN_REVIEW': return 'In Review';
-      case 'IN_PROGRESS': return 'In Progress';
-      case 'COMPLETED': return 'Completed';
+      case 'SUBMITTED': return '1. Submitted';
+      case 'RECEIVED': return '1. Received';
+      case 'IDENTITY_VERIFICATION': return '2. Identity Verification';
+      case 'CASE_ASSIGNED': return '3. Case Assigned';
+      case 'IN_REVIEW': return '3. In Review';
+      case 'DATA_COLLECTION': return '4. Data Collection';
+      case 'IN_PROGRESS': return '4. In Progress';
+      case 'APPROVAL_PENDING': return '5. Approval Pending';
+      case 'RESPONSE_GENERATION': return '6. Response Generation';
+      case 'CLOSED': return '7. Closed';
+      case 'COMPLETED': return '7. Completed';
       case 'REJECTED': return 'Rejected';
       case 'CANCELLED': return 'Cancelled';
       default: return st;
@@ -24,11 +31,18 @@ export default function DSRTable({
 
   const getStatusClass = (st) => {
     switch (st) {
+      case 'SUBMITTED':
       case 'RECEIVED': return 'status-planned';
-      case 'IN_REVIEW': return 'status-in-progress';
-      case 'IN_PROGRESS': return 'status-in-progress';
+      case 'IDENTITY_VERIFICATION':
+      case 'CASE_ASSIGNED':
+      case 'IN_REVIEW':
+      case 'DATA_COLLECTION':
+      case 'IN_PROGRESS':
+      case 'APPROVAL_PENDING':
+      case 'RESPONSE_GENERATION': return 'status-in-progress';
+      case 'CLOSED':
       case 'COMPLETED': return 'status-closed';
-      case 'REJECTED': return 'status-cancelled';
+      case 'REJECTED':
       case 'CANCELLED': return 'status-cancelled';
       default: return 'status-planned';
     }
@@ -37,8 +51,11 @@ export default function DSRTable({
   const getTypeLabel = (type) => {
     switch (type) {
       case 'ACCESS': return 'Right to Access';
+      case 'CORRECTION': return 'Right to Correction';
       case 'RECTIFICATION': return 'Right to Rectification';
-      case 'ERASURE': return 'Right to Erasure (RTBF)';
+      case 'ERASURE': return 'Right to Erasure';
+      case 'CONSENT_WITHDRAWAL': return 'Consent Withdrawal';
+      case 'GRIEVANCE': return 'Grievance Management';
       case 'RESTRICTION': return 'Restriction of Processing';
       case 'PORTABILITY': return 'Data Portability';
       case 'OBJECTION': return 'Right to Object';
@@ -58,7 +75,7 @@ export default function DSRTable({
   };
 
   const isOverdue = (dueStr, status) => {
-    if (!dueStr || ['COMPLETED', 'REJECTED', 'CANCELLED'].includes(status)) return false;
+    if (!dueStr || ['CLOSED', 'COMPLETED', 'REJECTED', 'CANCELLED'].includes(status)) return false;
     try {
       const dueDate = new Date(dueStr);
       return dueDate.getTime() < Date.now();
@@ -70,7 +87,7 @@ export default function DSRTable({
   if (loading) {
     return (
       <div className="table-card table-state-container">
-        <p className="state-message">Loading Data Subject Requests...</p>
+        <p className="state-message">Loading Data Subject / Principal Requests...</p>
       </div>
     );
   }
@@ -86,7 +103,7 @@ export default function DSRTable({
   if (!dsrs || dsrs.length === 0) {
     return (
       <div className="table-card table-state-container">
-        <p className="state-message">No Data Subject Requests found matching the criteria.</p>
+        <p className="state-message">No Data Subject / Principal Requests found matching the criteria.</p>
       </div>
     );
   }
@@ -97,12 +114,12 @@ export default function DSRTable({
         <thead>
           <tr>
             <th>Reference</th>
-            <th>Data Subject</th>
-            <th>Request Type</th>
-            <th>Status</th>
+            <th>Data Principal</th>
+            <th>Right Requested</th>
+            <th>Workflow Stage</th>
             <th>Received At</th>
             <th>Due Date</th>
-            <th>Assigned To</th>
+            <th>Assigned Handler</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -114,7 +131,7 @@ export default function DSRTable({
                 <div style={{ fontWeight: 600, color: '#f8fafc' }}>{dsr.data_subject_identifier}</div>
                 {dsr.user_name && (
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                    App User: {dsr.user_name}
+                    User: {dsr.user_name}
                   </div>
                 )}
               </td>
@@ -137,7 +154,7 @@ export default function DSRTable({
                 <div className="action-buttons">
                   <button
                     className="btn-icon"
-                    title="View Request Details"
+                    title="View & Process Workflow"
                     onClick={() => onView && onView(dsr)}
                   >
                     👁️

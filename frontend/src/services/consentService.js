@@ -165,8 +165,103 @@ export async function withdrawConsent(id, payload = {}) {
   return data.data;
 }
 
+export async function renewConsent(id, payload = {}) {
+  const response = await apiFetch(`${API_BASE_URL}/consents/${id}/renew`, {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  });
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const err = new Error(data.error || `HTTP error! Status: ${response.status}`);
+    err.status = response.status;
+    throw err;
+  }
+
+  return data.data;
+}
+
 export async function getConsentHistory(id) {
   const response = await apiFetch(`${API_BASE_URL}/consents/${id}/history`, { method: 'GET' });
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const err = new Error(data.error || `HTTP error! Status: ${response.status}`);
+    err.status = response.status;
+    throw err;
+  }
+
+  return data.data;
+}
+
+// ==========================================
+// END-USER PREFERENCE CENTER APIS
+// ==========================================
+
+export async function getMyPreferences() {
+  const response = await apiFetch(`${API_BASE_URL}/preference-center/my-preferences`, { method: 'GET' });
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const err = new Error(data.error || `HTTP error! Status: ${response.status}`);
+    err.status = response.status;
+    throw err;
+  }
+
+  return data.data;
+}
+
+export async function updateMyPreferences(preferences) {
+  const response = await apiFetch(`${API_BASE_URL}/preference-center/my-preferences`, {
+    method: 'POST',
+    body: JSON.stringify({ preferences })
+  });
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const err = new Error(data.error || `HTTP error! Status: ${response.status}`);
+    err.status = response.status;
+    throw err;
+  }
+
+  return data.data;
+}
+
+export async function getMyConsentHistory() {
+  const response = await apiFetch(`${API_BASE_URL}/preference-center/my-history`, { method: 'GET' });
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const err = new Error(data.error || `HTTP error! Status: ${response.status}`);
+    err.status = response.status;
+    throw err;
+  }
+
+  return data.data;
+}
+
+export async function downloadMyConsentRecords(format = 'json') {
+  const response = await apiFetch(`${API_BASE_URL}/preference-center/download?format=${format}`, { method: 'GET' });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    const err = new Error(data.error || `HTTP error! Status: ${response.status}`);
+    err.status = response.status;
+    throw err;
+  }
+
+  if (format === 'csv') {
+    return await response.text();
+  }
+  return await response.json();
+}
+
+// ==========================================
+// CONSENT ANALYTICS & TRENDS APIS
+// ==========================================
+
+export async function getConsentAnalyticsTrends() {
+  const response = await apiFetch(`${API_BASE_URL}/consents/analytics/trends`, { method: 'GET' });
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {

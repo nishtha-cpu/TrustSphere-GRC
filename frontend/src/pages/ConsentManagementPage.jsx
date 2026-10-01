@@ -12,13 +12,40 @@ import {
   archivePurpose,
   listConsents,
   createConsent,
-  withdrawConsent
+  withdrawConsent,
+  getConsentAnalyticsTrends
 } from '../services/consentService';
 import { getUsers } from '../services/auditService';
 
 export default function ConsentManagementPage({ onNavigate, onViewConsent }) {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('purposes'); // 'purposes' | 'consents'
+  const [activeTab, setActiveTab] = useState('purposes'); // 'purposes' | 'consents' | 'analytics'
+
+  // Analytics State
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [loadingAnalytics, setLoadingAnalytics] = useState(false);
+  const [analyticsError, setAnalyticsError] = useState(null);
+
+  // Load Analytics Data
+  const loadAnalyticsData = async () => {
+    try {
+      setLoadingAnalytics(true);
+      setAnalyticsError(null);
+      const data = await getConsentAnalyticsTrends();
+      setAnalyticsData(data);
+    } catch (err) {
+      console.error('Failed to load consent analytics:', err);
+      setAnalyticsError(err.message || 'Failed to load consent analytics');
+    } finally {
+      setLoadingAnalytics(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'analytics') {
+      loadAnalyticsData();
+    }
+  }, [activeTab]);
 
   // Purposes State
   const [purposes, setPurposes] = useState([]);
@@ -242,6 +269,13 @@ export default function ConsentManagementPage({ onNavigate, onViewConsent }) {
           >
             Consent Records ({consents.length})
           </button>
+          <button
+            className={`nav-link ${activeTab === 'analytics' ? 'active' : ''}`}
+            onClick={() => setActiveTab('analytics')}
+            style={{ padding: '0.75rem 1.25rem', borderBottom: activeTab === 'analytics' ? '2px solid #3b82f6' : '2px solid transparent', background: 'none', color: activeTab === 'analytics' ? '#60a5fa' : 'var(--text-muted)', fontWeight: 600, cursor: 'pointer' }}
+          >
+            Analytics & Trends
+          </button>
         </div>
 
         {/* TAB A: PROCESSING PURPOSES */}
@@ -317,6 +351,7 @@ export default function ConsentManagementPage({ onNavigate, onViewConsent }) {
                   <option value="GRANTED">Granted</option>
                   <option value="DENIED">Denied</option>
                   <option value="WITHDRAWN">Withdrawn</option>
+                  <option value="EXPIRED">Expired</option>
                 </select>
               </div>
 
@@ -346,6 +381,93 @@ export default function ConsentManagementPage({ onNavigate, onViewConsent }) {
               canWithdraw={canManageConsent}
             />
           </>
+        )}
+
+        {/* TAB C: CONSENT ANALYTICS & TRENDS */}
+        {activeTab === 'analytics' && (
+          <div>
+            {loadingAnalytics ? (
+              <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>Loading analytics data...</div>
+            ) : analyticsError ? (
+              <div style={{ padding: '1rem', background: '#450a0a', color: '#f87171', borderRadius: '6px' }}>{analyticsError}</div>
+            ) : analyticsData ? (
+              <div>
+                {/* Metric Summary Cards */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+                  <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '1.25rem' }}>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Total Consent Records</div>
+                    <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#f8fafc' }}>{analyticsData.summary?.total_consents || 0}</div>
+                  </div>
+                  <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '1.25rem' }}>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Active / Granted</div>
+                    <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#34d399' }}>{analyticsData.summary?.active_consents || 0}</div>
+                  </div>
+                  <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '1.25rem' }}>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Withdrawn</div>
+                    <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#f87171' }}>{analyticsData.summary?.withdrawn_consents || 0}</div>
+                  </div>
+                  <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '1.25rem' }}>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Expired</div>
+                    <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#fbbf24' }}>{analyticsData.summary?.expired_consents || 0}</div>
+                  </div>
+                </div>
+
+                {/* Channel / Source Breakdown */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                  <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '1.5rem' }}>
+                    <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: '#f8fafc' }}>Collection Channels</h3>
+                    {analyticsData.channels && analyticsData.channels.length > 0 ? (
+                      <table style={{ width: '100%', borderCollapse: 'collapse', color: 'var(--text-main)' }}>
+                        <thead>
+                          <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', textAlign: 'left' }}>
+                            <th style={{ padding: '0.5rem 0', color: 'var(--text-muted)' }}>Source Channel</th>
+                            <th style={{ padding: '0.5rem 0', color: 'var(--text-muted)' }}>Count</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {analyticsData.channels.map((ch, idx) => (
+                            <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                              <td style={{ padding: '0.6rem 0' }}>{ch.source}</td>
+                              <td style={{ padding: '0.6rem 0', fontWeight: '600' }}>{ch.count}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    ) : (
+                      <div style={{ color: 'var(--text-muted)' }}>No channel breakdown available.</div>
+                    )}
+                  </div>
+
+                  {/* Monthly Trends */}
+                  <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '1.5rem' }}>
+                    <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: '#f8fafc' }}>Monthly Consent Trends</h3>
+                    {analyticsData.trends && analyticsData.trends.length > 0 ? (
+                      <table style={{ width: '100%', borderCollapse: 'collapse', color: 'var(--text-main)' }}>
+                        <thead>
+                          <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', textAlign: 'left' }}>
+                            <th style={{ padding: '0.5rem 0', color: 'var(--text-muted)' }}>Month</th>
+                            <th style={{ padding: '0.5rem 0', color: 'var(--text-muted)' }}>Granted</th>
+                            <th style={{ padding: '0.5rem 0', color: 'var(--text-muted)' }}>Withdrawn</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {analyticsData.trends.map((t, idx) => (
+                            <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                              <td style={{ padding: '0.6rem 0' }}>{t.month}</td>
+                              <td style={{ padding: '0.6rem 0', color: '#34d399', fontWeight: '600' }}>{t.granted_count}</td>
+                              <td style={{ padding: '0.6rem 0', color: '#f87171', fontWeight: '600' }}>{t.withdrawn_count}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    ) : (
+                      <div style={{ color: 'var(--text-muted)' }}>No trend data available.</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </div>
         )}
 
         {/* Purpose Form Modal */}

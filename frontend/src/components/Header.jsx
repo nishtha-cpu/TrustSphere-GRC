@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 
-export default function Header({ activeTab = 'register', onNavigate }) {
+export default function Header({ activeTab = 'dashboard', onNavigate }) {
   const { user, logout } = useAuth();
 
   const getInitials = () => {
@@ -21,48 +21,51 @@ export default function Header({ activeTab = 'register', onNavigate }) {
   };
 
   return (
-    <header className="header">
+    <header className="header" style={{ flexWrap: 'wrap', gap: '0.5rem', padding: '0.75rem 1.5rem' }}>
       <div className="brand">
         <div className="brand-icon">T</div>
         <span className="brand-title">TrustSphere-GRC</span>
       </div>
 
-      <nav className="header-nav">
-        <button
-          className={`nav-link ${activeTab === 'register' ? 'active' : ''}`}
-          onClick={() => onNavigate && onNavigate('register')}
-        >
+      <nav className="header-nav" style={{ flexWrap: 'wrap', gap: '0.25rem' }}>
+        <button className={`nav-link ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => onNavigate && onNavigate('dashboard')}>
+          Dashboard
+        </button>
+        <button className={`nav-link ${activeTab === 'register' ? 'active' : ''}`} onClick={() => onNavigate && onNavigate('register')}>
           Risk Register
         </button>
-        <button
-          className={`nav-link ${activeTab === 'matrix' ? 'active' : ''}`}
-          onClick={() => onNavigate && onNavigate('matrix')}
-        >
-          Risk Matrix
+        <button className={`nav-link ${activeTab === 'audits' ? 'active' : ''}`} onClick={() => onNavigate && onNavigate('audits')}>
+          Audits
         </button>
-        <button
-          className={`nav-link ${activeTab === 'audits' ? 'active' : ''}`}
-          onClick={() => onNavigate && onNavigate('audits')}
-        >
-          Audit Management
+        <button className={`nav-link ${activeTab === 'policies' ? 'active' : ''}`} onClick={() => onNavigate && onNavigate('policies')}>
+          Policies
         </button>
-        <button
-          className={`nav-link ${activeTab === 'policies' ? 'active' : ''}`}
-          onClick={() => onNavigate && onNavigate('policies')}
-        >
-          Policy Management
+        <button className={`nav-link ${activeTab === 'consent' ? 'active' : ''}`} onClick={() => onNavigate && onNavigate('consent')}>
+          Consent
         </button>
-        <button
-          className={`nav-link ${activeTab === 'consent' ? 'active' : ''}`}
-          onClick={() => onNavigate && onNavigate('consent')}
-        >
-          Consent & Privacy
+        <button className={`nav-link ${activeTab === 'dsr' || activeTab === 'dprm' ? 'active' : ''}`} onClick={() => onNavigate && onNavigate('dprm')}>
+          DPRM
         </button>
-        <button
-          className={`nav-link ${activeTab === 'dsr' ? 'active' : ''}`}
-          onClick={() => onNavigate && onNavigate('dsr')}
-        >
-          Privacy / DSR
+        <button className={`nav-link ${activeTab === 'dpia' ? 'active' : ''}`} onClick={() => onNavigate && onNavigate('dpia')}>
+          PIA/DPIA
+        </button>
+        <button className={`nav-link ${activeTab === 'cookie' ? 'active' : ''}`} onClick={() => onNavigate && onNavigate('cookie')}>
+          Cookie
+        </button>
+        <button className={`nav-link ${activeTab === 'ropa' ? 'active' : ''}`} onClick={() => onNavigate && onNavigate('ropa')}>
+          RoPA
+        </button>
+        <button className={`nav-link ${activeTab === 'datainventory' ? 'active' : ''}`} onClick={() => onNavigate && onNavigate('datainventory')}>
+          Data Mapping
+        </button>
+        <button className={`nav-link ${activeTab === 'tprm' ? 'active' : ''}`} onClick={() => onNavigate && onNavigate('tprm')}>
+          TPRM
+        </button>
+        <button className={`nav-link ${activeTab === 'incident' ? 'active' : ''}`} onClick={() => onNavigate && onNavigate('incident')}>
+          Incidents
+        </button>
+        <button className={`nav-link ${activeTab === 'preferences' ? 'active' : ''}`} onClick={() => onNavigate && onNavigate('preferences')}>
+          Preference Center
         </button>
       </nav>
 

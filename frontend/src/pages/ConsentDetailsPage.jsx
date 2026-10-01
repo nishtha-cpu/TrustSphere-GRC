@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import ConsentHistory from '../components/consent/ConsentHistory';
 import { useAuth } from '../context/AuthContext';
-import { getConsent, withdrawConsent, getConsentHistory } from '../services/consentService';
+import { getConsent, withdrawConsent, renewConsent, getConsentHistory } from '../services/consentService';
 
 export default function ConsentDetailsPage({ consentId, onNavigate, onBack }) {
   const { user } = useAuth();
@@ -11,12 +11,13 @@ export default function ConsentDetailsPage({ consentId, onNavigate, onBack }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [withdrawing, setWithdrawing] = useState(false);
+  const [renewing, setRenewing] = useState(false);
 
   // Permission UX Check
   const userRoles = Array.isArray(user?.roles)
     ? user.roles
     : (user?.role ? [user.role] : []);
-  const canWithdraw = userRoles.some(r => ['POLICY_MGR', 'RISK_MANAGER', 'AUDITOR', 'SEC_OFFICER', 'TENANT_ADMIN', 'SYSTEM_ADMIN'].includes(r));
+  const canManageConsent = userRoles.some(r => ['POLICY_MGR', 'RISK_MANAGER', 'AUDITOR', 'SEC_OFFICER', 'TENANT_ADMIN', 'SYSTEM_ADMIN'].includes(r));
 
   const loadData = async () => {
     if (!consentId) {
@@ -79,11 +80,35 @@ export default function ConsentDetailsPage({ consentId, onNavigate, onBack }) {
     }
   };
 
+  const handleRenew = async () => {
+    if (renewing || !consent) return;
+    const confirmed = window.confirm(
+      `Are you sure you want to renew consent for data subject "${consent.data_subject_identifier}"?\n\nThis will reinstate status to GRANTED and add a CONSENT_RENEWED audit record.`
+    );
+    if (!confirmed) return;
+
+    try {
+      setRenewing(true);
+      await renewConsent(consentId, { notes: 'Consent renewed by administrator action' });
+      await loadData();
+    } catch (err) {
+      console.error('Failed to renew consent:', err);
+      if (err.status === 403) {
+        alert('You do not have permission to renew consents.');
+      } else {
+        alert(err.message || 'Failed to renew consent');
+      }
+    } finally {
+      setRenewing(false);
+    }
+  };
+
   const getStatusLabel = (st) => {
     switch (st) {
       case 'GRANTED': return 'Granted';
       case 'DENIED': return 'Denied';
       case 'WITHDRAWN': return 'Withdrawn';
+      case 'EXPIRED': return 'Expired';
       default: return st;
     }
   };
@@ -93,6 +118,7 @@ export default function ConsentDetailsPage({ consentId, onNavigate, onBack }) {
       case 'GRANTED': return 'status-closed';
       case 'DENIED': return 'status-cancelled';
       case 'WITHDRAWN': return 'status-in-progress';
+      case 'EXPIRED': return 'status-planned';
       default: return 'status-planned';
     }
   };
@@ -117,11 +143,18 @@ export default function ConsentDetailsPage({ consentId, onNavigate, onBack }) {
             &larr; Back to Consent Management
           </button>
 
-          {consent && consent.status === 'GRANTED' && canWithdraw && (
-            <button className="btn-primary" style={{ background: '#dc2626' }} onClick={handleWithdraw} disabled={withdrawing}>
-              {withdrawing ? 'Withdrawing...' : '🚫 Withdraw Consent'}
-            </button>
-          )}
+          <div style={{ display: 'flex', gap: '0.75rem' }}>
+            {consent && consent.status === 'GRANTED' && canManageConsent && (
+              <button className="btn-primary" style={{ background: '#dc2626' }} onClick={handleWithdraw} disabled={withdrawing}>
+                {withdrawing ? 'Withdrawing...' : '🚫 Withdraw Consent'}
+              </button>
+            )}
+            {consent && (consent.status === 'WITHDRAWN' || consent.status === 'EXPIRED' || consent.status === 'DENIED') && canManageConsent && (
+              <button className="btn-primary" style={{ background: '#10b981' }} onClick={handleRenew} disabled={renewing}>
+                {renewing ? 'Renewing...' : '🔄 Renew Consent'}
+              </button>
+            )}
+          </div>
         </div>
 
         {loading && (
@@ -165,16 +198,16 @@ export default function ConsentDetailsPage({ consentId, onNavigate, onBack }) {
               <div className="overview-grid">
                 {/* Data Subject & Consent Details */}
                 <div className="overview-card">
-                  <h3 className="card-title">Data Subject Details</h3>
+                  <h3 className="card-title">Data Principal Details</h3>
                   <div className="detail-list">
                     <div className="detail-item">
-                      <span className="detail-label">Data Subject Identifier</span>
+                      <span className="detail-label">Data Principal Identifier</span>
                       <span className="detail-value">{consent.data_subject_identifier}</span>
                     </div>
                     <div className="detail-item">
                       <span className="detail-label">Subject Type</span>
                       <span className="detail-value">
-                        {consent.data_subject_type === 'APPLICATION_USER' ? 'Application User' : 'External Data Subject'}
+                        {consent.data_subject_type === 'APPLICATION_USER' ? 'Application User' : 'External Data Principal'}
                       </span>
                     </div>
                     {consent.user_id && (
@@ -184,7 +217,7 @@ export default function ConsentDetailsPage({ consentId, onNavigate, onBack }) {
                       </div>
                     )}
                     <div className="detail-item">
-                      <span className="detail-label">Collection Source</span>
+                      <span className="detail-label">Collection Channel</span>
                       <span className="detail-value">{consent.source || 'N/A'}</span>
                     </div>
                     <div className="detail-item">
@@ -234,8 +267,8 @@ export default function ConsentDetailsPage({ consentId, onNavigate, onBack }) {
                     </span>
                   </div>
                   <div className="detail-item">
-                    <span className="detail-label">Created Date</span>
-                    <span className="detail-value">{formatDateTime(consent.created_at)}</span>
+                    <span className="detail-label">Expiration Date</span>
+                    <span className="detail-value">{formatDateTime(consent.expires_at)}</span>
                   </div>
                   <div className="detail-item">
                     <span className="detail-label">Last Updated Date</span>
@@ -244,7 +277,7 @@ export default function ConsentDetailsPage({ consentId, onNavigate, onBack }) {
                 </div>
               </div>
 
-              {/* Technical / Network Audit Metadata (if present) */}
+              {/* Technical / Network Audit Metadata */}
               {(consent.ip_address || consent.user_agent) && (
                 <div className="overview-card" style={{ marginTop: '1.25rem' }}>
                   <h3 className="card-title">Technical Audit Metadata</h3>

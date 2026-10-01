@@ -54,7 +54,7 @@ export default function DSRManagementPage({ onNavigate }) {
     } catch (err) {
       console.error('Failed to load DSRs:', err);
       if (err.status === 403) {
-        setError('You do not have permission to view Data Subject Requests.');
+        setError('You do not have permission to view Data Subject / Principal Requests.');
       } else {
         setError(err.message || 'Failed to load Data Subject Requests');
       }
@@ -136,15 +136,15 @@ export default function DSRManagementPage({ onNavigate }) {
       <main className="main-content">
         <div className="page-header">
           <div>
-            <h1 className="page-title">Privacy & Data Subject Requests (DSR)</h1>
+            <h1 className="page-title">Data Principal Rights Management (DPRM)</h1>
             <p className="page-subtitle">
-              Manage data subject rights fulfillment (GDPR/CCPA), statutory response timelines, and compliance requests.
+              Fulfill statutory data principal rights (Access, Correction, Erasure, Consent Withdrawal, Grievance) via the 7-stage workflow.
             </p>
           </div>
 
           {canManageDSR && (
             <button className="btn-primary" onClick={() => setShowForm(true)}>
-              <span>+</span> Log DSR Request
+              <span>+</span> Log DPRM Request
             </button>
           )}
         </div>
@@ -165,33 +165,39 @@ export default function DSRManagementPage({ onNavigate }) {
             />
           </div>
 
-          <div style={{ minWidth: '180px' }}>
+          <div style={{ minWidth: '200px' }}>
             <select
               className="search-input"
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
             >
-              <option value="">All Request Types</option>
+              <option value="">All Rights & Types</option>
               <option value="ACCESS">Right to Access</option>
-              <option value="RECTIFICATION">Right to Rectification</option>
+              <option value="CORRECTION">Right to Correction</option>
               <option value="ERASURE">Right to Erasure (RTBF)</option>
+              <option value="CONSENT_WITHDRAWAL">Consent Withdrawal</option>
+              <option value="GRIEVANCE">Grievance Management</option>
+              <option value="RECTIFICATION">Right to Rectification</option>
               <option value="RESTRICTION">Restriction of Processing</option>
               <option value="PORTABILITY">Data Portability</option>
               <option value="OBJECTION">Right to Object</option>
             </select>
           </div>
 
-          <div style={{ minWidth: '160px' }}>
+          <div style={{ minWidth: '200px' }}>
             <select
               className="search-input"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
-              <option value="">All Statuses</option>
-              <option value="RECEIVED">Received</option>
-              <option value="IN_REVIEW">In Review</option>
-              <option value="IN_PROGRESS">In Progress</option>
-              <option value="COMPLETED">Completed</option>
+              <option value="">All Workflow Stages</option>
+              <option value="SUBMITTED">1. Submitted</option>
+              <option value="IDENTITY_VERIFICATION">2. Identity Verification</option>
+              <option value="CASE_ASSIGNED">3. Case Assigned</option>
+              <option value="DATA_COLLECTION">4. Data Collection</option>
+              <option value="APPROVAL_PENDING">5. Approval Pending</option>
+              <option value="RESPONSE_GENERATION">6. Response Generation</option>
+              <option value="CLOSED">7. Closed / Completed</option>
               <option value="REJECTED">Rejected</option>
               <option value="CANCELLED">Cancelled</option>
             </select>

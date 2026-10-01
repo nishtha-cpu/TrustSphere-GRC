@@ -16,6 +16,15 @@ const userRoutes = require('./routes/userRoutes');
 const consentRoutes = require('./routes/consentRoutes');
 const dsrRoutes = require('./routes/dsrRoutes');
 
+// Master BRD Completion Routes
+const dpiaRoutes = require('./routes/dpiaRoutes');
+const cookieRoutes = require('./routes/cookieRoutes');
+const ropaRoutes = require('./routes/ropaRoutes');
+const dataInventoryRoutes = require('./routes/dataInventoryRoutes');
+const tprmRoutes = require('./routes/tprmRoutes');
+const incidentRoutes = require('./routes/incidentRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
+
 const app = express();
 const PORT = 5000;
 
@@ -39,10 +48,6 @@ app.use('/api', dsrRoutes);
 
 // Risk Register API Routes
 app.use('/api/risks', riskRoutes);
-
-
-
-// Risk Assessment API Routes
 app.use('/api/risk-assessments', riskAssessmentRoutes);
 
 // Audit Management API Routes
@@ -55,6 +60,15 @@ app.use('/api', evidenceRoutes);
 // Policy Management API Routes
 app.use('/api/policies', policyRoutes);
 app.use('/api/policy-versions', policyVersionRoutes);
+
+// BRD Module Routes
+app.use('/api/dpia', dpiaRoutes);
+app.use('/api/cookies', cookieRoutes);
+app.use('/api/ropa', ropaRoutes);
+app.use('/api/data-inventory', dataInventoryRoutes);
+app.use('/api/tprm', tprmRoutes);
+app.use('/api/incidents', incidentRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 app.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);

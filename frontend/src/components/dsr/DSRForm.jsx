@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 const REQUEST_TYPE_OPTIONS = [
-  { value: 'ACCESS', label: 'Right to Access (GDPR Art. 15)' },
+  { value: 'ACCESS', label: 'Right to Access (BRD / GDPR Art. 15)' },
+  { value: 'CORRECTION', label: 'Right to Correction (BRD / DPDP Sec. 12)' },
+  { value: 'ERASURE', label: 'Right to Erasure / Right to be Forgotten (BRD / GDPR Art. 17)' },
+  { value: 'CONSENT_WITHDRAWAL', label: 'Consent Withdrawal (BRD / GDPR Art. 7)' },
+  { value: 'GRIEVANCE', label: 'Grievance Management (BRD / DPDP Sec. 13)' },
   { value: 'RECTIFICATION', label: 'Right to Rectification (GDPR Art. 16)' },
-  { value: 'ERASURE', label: 'Right to Erasure / Right to be Forgotten (GDPR Art. 17)' },
   { value: 'RESTRICTION', label: 'Restriction of Processing (GDPR Art. 18)' },
   { value: 'PORTABILITY', label: 'Data Portability (GDPR Art. 20)' },
   { value: 'OBJECTION', label: 'Right to Object (GDPR Art. 21)' }
@@ -84,7 +87,7 @@ export default function DSRForm({
     <div className="modal-backdrop">
       <div className="modal-container" style={{ maxWidth: '650px' }}>
         <div className="modal-header">
-          <h2 className="modal-title">Log Data Subject Request (DSR)</h2>
+          <h2 className="modal-title">Log Data Subject Request (DPRM)</h2>
           <button className="btn-close" onClick={onClose} disabled={submitting}>
             &times;
           </button>
@@ -109,7 +112,7 @@ export default function DSRForm({
                 }}
                 disabled={submitting}
               >
-                <option value="EXTERNAL">External Data Subject</option>
+                <option value="EXTERNAL">External Data Principal</option>
                 <option value="APP_USER">Application User</option>
               </select>
             </div>
@@ -136,7 +139,7 @@ export default function DSRForm({
 
           <div className="form-group" style={{ marginBottom: '1rem' }}>
             <label className="form-label">
-              Data Subject Identifier <span style={{ color: '#ef4444' }}>*</span>
+              Data Principal Identifier <span style={{ color: '#ef4444' }}>*</span>
             </label>
             <input
               type="text"
@@ -151,7 +154,7 @@ export default function DSRForm({
 
           <div className="form-group" style={{ marginBottom: '1rem' }}>
             <label className="form-label">
-              Request Type (GDPR Right) <span style={{ color: '#ef4444' }}>*</span>
+              Data Principal Right <span style={{ color: '#ef4444' }}>*</span>
             </label>
             <select
               className="form-input"
@@ -170,7 +173,7 @@ export default function DSRForm({
 
           <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
             <div className="form-group" style={{ flex: 1 }}>
-              <label className="form-label">Assign Officer / Handler</label>
+              <label className="form-label">Assign Privacy Officer / Handler</label>
               <select
                 className="form-input"
                 value={assignedTo}
@@ -194,7 +197,7 @@ export default function DSRForm({
                 onChange={(e) => setDueDays(e.target.value)}
                 disabled={submitting}
               >
-                <option value="30">30 Days (Standard GDPR Statutory Limit)</option>
+                <option value="30">30 Days (Standard Statutory Limit)</option>
                 <option value="15">15 Days (Priority Processing)</option>
                 <option value="60">60 Days (Extended Complex Request)</option>
               </select>
@@ -208,7 +211,7 @@ export default function DSRForm({
               rows={4}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Provide details regarding the data subject's request, specific systems involved, or scope of personal data affected..."
+              placeholder="Provide details regarding the data principal's request, specific systems involved, or scope of personal data affected..."
               disabled={submitting}
             />
           </div>

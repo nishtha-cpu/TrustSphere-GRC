@@ -170,11 +170,122 @@ async function withdrawConsent(req, res) {
   }
 }
 
+async function renewConsent(req, res) {
+  try {
+    const { id } = req.params;
+    const reqContext = {
+      ip: req.ip || req.headers['x-forwarded-for'],
+      userAgent: req.headers['user-agent']
+    };
+
+    const renewedConsent = await consentService.renewConsent(
+      req.user.userId,
+      req.user.tenantId,
+      id,
+      req.body,
+      reqContext
+    );
+
+    return res.status(200).json({
+      message: 'Consent renewed successfully',
+      data: renewedConsent
+    });
+  } catch (error) {
+    if (error.status) return res.status(error.status).json({ error: error.message });
+    console.error('Error renewing consent:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
 /**
  * ==========================================
- * CONSENT HISTORY CONTROLLER (READ ONLY)
+ * END-USER PREFERENCE CENTER CONTROLLER
  * ==========================================
  */
+
+async function getMyPreferences(req, res) {
+  try {
+    const userIdentifier = req.user.email;
+    const preferences = await consentService.getUserPreferences(req.user.tenantId, userIdentifier);
+    return res.status(200).json({ data: preferences });
+  } catch (error) {
+    if (error.status) return res.status(error.status).json({ error: error.message });
+    console.error('Error fetching user preferences:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+async function updateMyPreferences(req, res) {
+  try {
+    const userIdentifier = req.user.email;
+    const reqContext = {
+      ip: req.ip || req.headers['x-forwarded-for'],
+      userAgent: req.headers['user-agent']
+    };
+
+    const preferences = await consentService.updateUserPreferences(
+      req.user.userId,
+      req.user.tenantId,
+      userIdentifier,
+      req.body.preferences || [],
+      reqContext
+    );
+
+    return res.status(200).json({
+      message: 'Privacy preferences updated successfully',
+      data: preferences
+    });
+  } catch (error) {
+    if (error.status) return res.status(error.status).json({ error: error.message });
+    console.error('Error updating user preferences:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+async function getMyConsentHistory(req, res) {
+  try {
+    const userIdentifier = req.user.email;
+    const history = await consentService.getUserConsentHistory(req.user.tenantId, userIdentifier);
+    return res.status(200).json({ data: history });
+  } catch (error) {
+    if (error.status) return res.status(error.status).json({ error: error.message });
+    console.error('Error fetching user consent history:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+async function downloadMyConsentRecords(req, res) {
+  try {
+    const userIdentifier = req.user.email;
+    const format = req.query.format === 'csv' ? 'csv' : 'json';
+    const result = await consentService.downloadUserConsentRecords(req.user.tenantId, userIdentifier, format);
+
+    res.setHeader('Content-Type', result.contentType);
+    res.setHeader('Content-Disposition', `attachment; filename="${result.fileName}"`);
+    return res.status(200).send(result.data);
+  } catch (error) {
+    if (error.status) return res.status(error.status).json({ error: error.message });
+    console.error('Error downloading consent records:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+/**
+ * ==========================================
+ * CONSENT ANALYTICS CONTROLLER
+ * ==========================================
+ */
+
+async function getConsentAnalyticsTrends(req, res) {
+  try {
+    const analytics = await consentService.getConsentAnalyticsTrends(req.user.tenantId);
+    return res.status(200).json({ data: analytics });
+  } catch (error) {
+    if (error.status) return res.status(error.status).json({ error: error.message });
+    console.error('Error fetching consent analytics trends:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
 
 async function getConsentHistory(req, res) {
   try {
@@ -198,5 +309,11 @@ module.exports = {
   getConsentById,
   createConsentRecord,
   withdrawConsent,
+  renewConsent,
+  getMyPreferences,
+  updateMyPreferences,
+  getMyConsentHistory,
+  downloadMyConsentRecords,
+  getConsentAnalyticsTrends,
   getConsentHistory
 };

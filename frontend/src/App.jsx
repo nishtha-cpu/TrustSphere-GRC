@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
+import ComplianceDashboardPage from './pages/ComplianceDashboardPage';
 import RiskRegister from './pages/RiskRegister';
 import RiskMatrixPage from './pages/RiskMatrixPage';
 import AuditManagementPage from './pages/AuditManagementPage';
@@ -10,11 +11,18 @@ import PolicyDetailsPage from './pages/PolicyDetailsPage';
 import ConsentManagementPage from './pages/ConsentManagementPage';
 import ConsentDetailsPage from './pages/ConsentDetailsPage';
 import DSRManagementPage from './pages/DSRManagementPage';
+import PreferenceCenterPage from './pages/PreferenceCenterPage';
+import DPIAManagementPage from './pages/DPIAManagementPage';
+import CookieManagementPage from './pages/CookieManagementPage';
+import RoPAManagementPage from './pages/RoPAManagementPage';
+import DataInventoryPage from './pages/DataInventoryPage';
+import TPRMManagementPage from './pages/TPRMManagementPage';
+import IncidentManagementPage from './pages/IncidentManagementPage';
 import './App.css';
 
 export default function App() {
   const { isAuthenticated, isLoading } = useAuth();
-  const [currentView, setCurrentView] = useState('register');
+  const [currentView, setCurrentView] = useState('dashboard');
   const [selectedAuditId, setSelectedAuditId] = useState(null);
   const [selectedPolicyId, setSelectedPolicyId] = useState(null);
   const [selectedConsentId, setSelectedConsentId] = useState(null);
@@ -44,6 +52,10 @@ export default function App() {
 
   if (!isAuthenticated) {
     return <LoginPage />;
+  }
+
+  if (currentView === 'dashboard') {
+    return <ComplianceDashboardPage onNavigate={setCurrentView} />;
   }
 
   if (currentView === 'matrix') {
@@ -107,12 +119,36 @@ export default function App() {
     );
   }
 
-  if (currentView === 'dsr') {
-    return (
-      <DSRManagementPage
-        onNavigate={setCurrentView}
-      />
-    );
+  if (currentView === 'dsr' || currentView === 'dprm') {
+    return <DSRManagementPage onNavigate={setCurrentView} />;
+  }
+
+  if (currentView === 'preferences') {
+    return <PreferenceCenterPage onNavigate={setCurrentView} />;
+  }
+
+  if (currentView === 'dpia') {
+    return <DPIAManagementPage onNavigate={setCurrentView} />;
+  }
+
+  if (currentView === 'cookie') {
+    return <CookieManagementPage onNavigate={setCurrentView} />;
+  }
+
+  if (currentView === 'ropa') {
+    return <RoPAManagementPage onNavigate={setCurrentView} />;
+  }
+
+  if (currentView === 'datainventory') {
+    return <DataInventoryPage onNavigate={setCurrentView} />;
+  }
+
+  if (currentView === 'tprm') {
+    return <TPRMManagementPage onNavigate={setCurrentView} />;
+  }
+
+  if (currentView === 'incident') {
+    return <IncidentManagementPage onNavigate={setCurrentView} />;
   }
 
   return <RiskRegister onNavigate={setCurrentView} />;

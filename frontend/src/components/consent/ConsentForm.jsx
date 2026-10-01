@@ -87,7 +87,7 @@ export default function ConsentForm({
     <div className="modal-backdrop">
       <div className="modal-container" style={{ maxWidth: '650px' }}>
         <div className="modal-header">
-          <h2 className="modal-title">Record Data Subject Consent</h2>
+          <h2 className="modal-title">Record Data Principal Consent</h2>
           <button className="btn-close" onClick={onClose} disabled={submitting}>
             &times;
           </button>
@@ -134,7 +134,7 @@ export default function ConsentForm({
                 }}
                 disabled={submitting}
               >
-                <option value="EXTERNAL_DATA_SUBJECT">External Data Subject</option>
+                <option value="EXTERNAL_DATA_SUBJECT">External Data Principal</option>
                 <option value="APPLICATION_USER">Application User</option>
               </select>
             </div>
@@ -161,7 +161,7 @@ export default function ConsentForm({
 
           <div className="form-group" style={{ marginBottom: '1rem' }}>
             <label className="form-label">
-              Data Subject Identifier <span style={{ color: '#ef4444' }}>*</span>
+              Data Principal Identifier <span style={{ color: '#ef4444' }}>*</span>
             </label>
             <input
               type="text"
@@ -172,9 +172,6 @@ export default function ConsentForm({
               disabled={submitting}
               required
             />
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              Unique identifier for the data subject (e.g., email, UUID, or user identifier).
-            </span>
           </div>
 
           <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
@@ -205,7 +202,7 @@ export default function ConsentForm({
           </div>
 
           <div className="form-group" style={{ marginBottom: '1rem' }}>
-            <label className="form-label">Collection Source</label>
+            <label className="form-label">Collection Channel / Source</label>
             <select
               className="form-input"
               value={source}
@@ -214,9 +211,10 @@ export default function ConsentForm({
             >
               <option value="WEB_FORM">Web Registration Form</option>
               <option value="MOBILE_APP">Mobile Application</option>
-              <option value="PRIVACY_PORTAL">Privacy Preference Center</option>
+              <option value="CUSTOMER_PORTAL">Customer Portal / Preference Center</option>
               <option value="API">API Integration</option>
-              <option value="MANUAL_ENTRY">Manual / Admin Entry</option>
+              <option value="CRM">CRM Platform</option>
+              <option value="WEB_PORTAL">Web Portal</option>
             </select>
           </div>
 
